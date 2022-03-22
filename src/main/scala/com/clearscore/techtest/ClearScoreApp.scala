@@ -1,65 +1,25 @@
 package com.clearscore.techtest
 
-import akka.actor.typed.ActorSystem
-import akka.actor.typed.scaladsl.Behaviors
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.unmarshalling._
+import cats.effect.IO
 import com.clearscore.techtest.config.Config
-import com.clearscore.techtest.models._
+import com.clearscore.techtest.service.CreditCardQueryService
+import io.jobial.sclap.CommandLineApp
+import io.jobial.sclap.core.CommandLine
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Success, Failure}
-
-object ClearScoreApp extends App
+object ClearScoreApp extends CommandLineApp
   with Config
-  with ServiceJsonProtocol {
+  with CreditCardQueryService {
 
-  val host = config.getString("development.http.host")
-  val port = config.getInt("development.http.port")
-
-  implicit val actorSystem: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "ClearScoreApp")
-  implicit val userMarshaller: spray.json.RootJsonFormat[User] = jsonFormat3(User.apply)
-
-  val csCardsEndpoint = config.getString("development.providers.url.cscards")
-  val scoredCardsEndpoint = config.getString("development.providers.url.scoredcards")
-
-  def csCardsRequest(): Future[HttpResponse] =
-    Http(actorSystem).singleRequest(
-      HttpRequest(
-        HttpMethods.POST,
-        csCardsEndpoint,
-        entity = HttpEntity(ContentTypes.`application/json`, "{\"name\": \"John Smith\", \"creditScore\": 500}")
-      )
-    )
-
-  def scoredCardsRequest() = {
-    val response = Http(actorSystem).singleRequest(
-      HttpRequest(
-        uri = scoredCardsEndpoint,
-        method = HttpMethods.POST,
-        entity = HttpEntity(ContentTypes.`application/json`, "{\"name\": \"John Smith\", \"score\": 500, \"salary\": 18500}")
-      )
-    )
-
-    response onComplete {
-      case Success(res) =>
-        val scoredCardsRes: Future[ScoredCardsResponse] = Unmarshal(res.entity).to[ScoredCardsResponse]
-        println(scoredCardsRes)
-      case Failure(es) => println("This Failed")
+  override def run: CommandLine[Any] = command
+    .header("Credit Card Recommendation Service")
+    .description("ClearScore Tech Interview Task") {
+      for {
+        //command line options to be provided by end user or through config setting by default
+        port <- param[Int].label("HTTP_PORT").default(config.getInt("development.http.port")).description("The port to expose your service on")
+        cscUrl <- param[String].label("CSCARDS_ENDPOINT").default(config.getString("development.providers.url.cscards")).description("The base URL for CSCards")
+        scoredUrl <- param[String].label("SCOREDCARDS_ENDPOINT").default(config.getString("development.providers.url.scoredcards")).description("The base URL for ScoredCards")
+      } yield IO {
+        runService(port, cscUrl, scoredUrl)
+      }
     }
-  }
-
-  scoredCardsRequest()
-
-//  val route: Route = (path("creditcards") & post) {
-//    entity(as[User]) { _ =>
-//      complete(CardQueryServiceResponse("CardProvider", "ACard", 23.4, 0.6))
-//    }
-//  }
-//
-//  Http().newServerAt(host, port).bind(route)
 }

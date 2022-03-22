@@ -79,6 +79,38 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- set up mvn deploy to create executable bat/shell scripts with Codehaus Mojo plugin -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <version>2.1.0</version>
+                <configuration>
+                    <extraJvmArguments>-Xms128m</extraJvmArguments>
+                    <platforms>
+                        <platform>windows</platform>
+                        <platform>unix</platform>
+                    </platforms>
+                    <programs>
+                        <program>
+                            <mainClass>com.clearscore.techtest.ClearScoreApp</mainClass>
+                            <id>start</id>
+                        </program>
+                    </programs>
+                    <binFileExtensions>
+                        <windows>.bat</windows>
+                        <unix>.sh</unix>
+                    </binFileExtensions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -89,6 +121,18 @@
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>1.4.2</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jobial</groupId>
+            <artifactId>sclap_${scala.binary.version}</artifactId>
+            <version>1.3.0</version>
+        </dependency>
+
+        <!-- Akka libraries -->
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-http_${scala.binary.version}</artifactId>
@@ -114,10 +158,26 @@
             <artifactId>akka-http-cors_${scala.binary.version}</artifactId>
             <version>1.1.3</version>
         </dependency>
+        <!-- Swagger libraries -->
         <dependency>
-            <groupId>com.typesafe</groupId>
-            <artifactId>config</artifactId>
-            <version>1.4.2</version>
+            <groupId>com.github.swagger-akka-http</groupId>
+            <artifactId>swagger-akka-http_${scala.binary.version}</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.swagger-akka-http</groupId>
+            <artifactId>swagger-scala-module_${scala.binary.version}</artifactId>
+            <version>2.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-scala_${scala.binary.version}</artifactId>
+            <version>2.13.2</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <version>3.0.0</version>
         </dependency>
 
         <!-- Libraries for tests -->
