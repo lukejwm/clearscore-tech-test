@@ -7,6 +7,5 @@ trait Config {
   val env = if (System.getenv("SCALA_ENV") == null) "development" else System.getenv("SCALA_ENV")
 
   val config = ConfigFactory.load()
-
   def apply() = config.getConfig(env)
 }
