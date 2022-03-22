@@ -1,3 +1,5 @@
+package com.clearscore.techtest
+
 import org.scalatest.freespec.AnyFreeSpec
 
 class ClearScoreSpec extends AnyFreeSpec {

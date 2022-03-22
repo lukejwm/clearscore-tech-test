@@ -1,16 +1,16 @@
-//akka
+package com.clearscore.techtest
+
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.server.Route
-//akka http
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 
+import com.clearscore.techtest.config.Config
 
-object ClearScoreApp extends App {
-  val host = "127.0.0.1"  //run service on localhost
+object ClearScoreApp extends App with Config {
+  val host = config.getString("development.http.host")
+  val port = config.getInt("development.http.port")
 
   implicit val actorSystem: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "ClearScoreApp")
 
@@ -18,5 +18,5 @@ object ClearScoreApp extends App {
     complete("You are viewing credit card offers")
   }
 
-  Http().newServerAt(host, 8080).bind(route)
+  Http().newServerAt(host, port).bind(route)
 }
