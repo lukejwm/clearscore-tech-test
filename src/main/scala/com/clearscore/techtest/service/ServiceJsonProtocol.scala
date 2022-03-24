@@ -11,7 +11,7 @@ trait ServiceJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
 
   //Ensure that CSCards response format can allow for JSON serialization and deserialization
   implicit object cscCardsResponseFormat extends RootJsonFormat[CSCardsResponse] {
-
+    //We will be reading JSON responses to convert to object types
     override def read(jsonValue: JsValue): CSCardsResponse = {
       jsonValue.asJsObject.getFields("cardName", "apr", "eligibility") match {
         case Seq(JsString(cardName), JsNumber(apr), JsNumber(eligibility)) =>
@@ -30,7 +30,7 @@ trait ServiceJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
 
   //Ensure that Scored Cards response format can allow for JSON serialization and deserialization
   implicit object scoredCardsResponseFormat extends RootJsonFormat[ScoredCardsResponse] {
-
+    //We will be reading JSON responses to convert to object types
     override def read(jsonValue: JsValue): ScoredCardsResponse = {
       jsonValue.asJsObject.getFields("card", "apr", "approvalRating") match {
         case Seq(JsString(card), JsNumber(apr), JsNumber(approvalRating)) =>

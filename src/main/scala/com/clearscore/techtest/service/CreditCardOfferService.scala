@@ -50,11 +50,21 @@ trait CreditCardOfferService extends ServiceJsonProtocol {
       csCardOffers <- fetchCsCardOffers(user, csCardsEndpoint)
       scoredCardOffers <- fetchScoredCardsOffers(user, scoredCardsEndpoint)
     } yield {
-      (csCardOffers, scoredCardOffers)
+      //process CSCard offers
+      for(csCardOffer <- csCardOffers) yield {
+        CardQueryServiceResponse("CSCards", csCardOffer.cardName, csCardOffer.apr, getSortingScore(csCardOffer.eligibility, csCardOffer.apr))
+      }
+
+      for(scoredCardOffer <- scoredCardOffers) yield {
+        CardQueryServiceResponse("ScoredCards", scoredCardOffer.card, scoredCardOffer.apr, getSortingScore(scoredCardOffer.approvalRating, scoredCardOffer.apr))
+      }
     }
   }
 
-  def fetchCsCardOffers(user: User, endpoint: String): Future[List[CSCardsResponse]] = {
+  private def getSortingScore(eligibility: Double, apr: Double): Double =
+    eligibility * (1/scala.math.pow(apr, 2))
+
+  private def fetchCsCardOffers(user: User, endpoint: String): Future[List[CSCardsResponse]] = {
     val body = s"""{"name": "${user.name}", "creditScore": ${user.creditScore}}"""
 
     val csCardOffers = Http().singleRequest(
@@ -73,7 +83,7 @@ trait CreditCardOfferService extends ServiceJsonProtocol {
     csCardOffers
   }
 
-  def fetchScoredCardsOffers(user: User, endpoint: String): Future[List[ScoredCardsResponse]] = {
+  private def fetchScoredCardsOffers(user: User, endpoint: String): Future[List[ScoredCardsResponse]] = {
     val body = s"""{"name": "${user.name}", "score": ${user.creditScore}, "salary": ${user.salary}}"""
 
     val scoredCardsOffers = Http().singleRequest(
