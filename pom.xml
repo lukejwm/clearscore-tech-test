@@ -13,6 +13,7 @@
         <scala.binary.version>2.13</scala.binary.version>
         <akka.version>2.6.18</akka.version>
         <akkahttp.version>10.2.9</akkahttp.version>
+        <slf4j.version>1.7.36</slf4j.version>
         <scalatest.version>3.2.11</scalatest.version>
     </properties>
 
@@ -178,6 +179,18 @@
             <groupId>jakarta.ws.rs</groupId>
             <artifactId>jakarta.ws.rs-api</artifactId>
             <version>3.0.0</version>
+        </dependency>
+
+        <!-- Logging libraries-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
 
         <!-- Libraries for tests -->

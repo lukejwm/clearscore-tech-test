@@ -8,5 +8,7 @@ import spray.json.DefaultJsonProtocol.iterableFormat
 trait ServiceJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
   //JSON Serialization
   implicit val userFormat = jsonFormat3(User)
-  implicit val cardQueryResponse = jsonFormat3(CardQueryServiceResponse)
+  implicit val serviceResponseFormat = jsonFormat4(CardQueryServiceResponse)
+  implicit val cscCardsResponseFormat = jsonFormat3(CSCardsResponse)
+  implicit val scoredCardsResponseFormat = jsonFormat3(ScoredCardsResponse)
 }

@@ -7,11 +7,11 @@ class ClearScoreSpec extends AnyFreeSpec {
 
   "Each credit card provider" - {
     "CSCards can respond with data" in {
-      val mockUser = UserQueryFormat1("John Smith", 500)
+      val mockUser = ""
     }
 
     "ScoredCards can respond with data" in {
-      val mockUser = UserQueryFormat2("John Smith", 341, 18500)
+      val mockUser = ""
     }
   }
 
