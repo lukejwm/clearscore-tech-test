@@ -1,7 +1,5 @@
 package com.clearscore.techtest.models
 
-import io.swagger.v3.oas.annotations._
-
 //What a user will input into the service
 final case class User(name: String, creditScore: Int, salary: Int)
 

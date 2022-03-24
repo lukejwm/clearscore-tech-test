@@ -1,32 +1,22 @@
 package com.clearscore.techtest.service
 
-import akka.actor.typed.{ActorRef, ActorSystem}
+import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.client.RequestBuilding.Post
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import com.clearscore.techtest.ClearScoreApp.log
-import com.clearscore.techtest.config._
 import com.clearscore.techtest.models._
 import org.slf4j.LoggerFactory
-import spray.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 trait CreditCardOfferService extends ServiceJsonProtocol {
   implicit val actorSystem = ActorSystem(Behaviors.empty, "ClearScoreApp")
   implicit val userMarshaller: spray.json.RootJsonFormat[User] = jsonFormat3(User.apply)
-
-  //for reading JSON responses
-  implicit val modelJsonReaderCsCards = new JsonReader[CSCardsResponse] {
-    override def read(json: JsValue): CSCardsResponse = ???
-  }
 
   val log = LoggerFactory.getLogger("om.clearscore.techtest.service.CreditCardOfferService")
 
@@ -45,25 +35,33 @@ trait CreditCardOfferService extends ServiceJsonProtocol {
     Http().newServerAt(host, port).bind(route)
   }
 
-  def findCreditCardDeals(user: User, csCardsEndpoint: String, scoredCardsEndpoint: String) = {
+  def findCreditCardDeals(user: User, csCardsEndpoint: String, scoredCardsEndpoint: String): Future[List[CardQueryServiceResponse]] = {
     for {
       csCardOffers <- fetchCsCardOffers(user, csCardsEndpoint)
       scoredCardOffers <- fetchScoredCardsOffers(user, scoredCardsEndpoint)
     } yield {
       //process CSCard offers
-      for(csCardOffer <- csCardOffers) yield {
+      val csCards = for (csCardOffer <- csCardOffers) yield {
         CardQueryServiceResponse("CSCards", csCardOffer.cardName, csCardOffer.apr, getSortingScore(csCardOffer.eligibility, csCardOffer.apr))
       }
 
-      for(scoredCardOffer <- scoredCardOffers) yield {
+      //process ScoredCard offers
+      val scoredCards = for (scoredCardOffer <- scoredCardOffers) yield {
         CardQueryServiceResponse("ScoredCards", scoredCardOffer.card, scoredCardOffer.apr, getSortingScore(scoredCardOffer.approvalRating, scoredCardOffer.apr))
       }
+
+      val allCards = csCards ::: scoredCards
+      allCards.sortBy(c => c.cardScore)
     }
   }
 
-  private def getSortingScore(eligibility: Double, apr: Double): Double =
-    eligibility * (1/scala.math.pow(apr, 2))
+  private def getSortingScore(eligibility: Double, apr: Double): Double = {
+    val rawRating = eligibility * (1 / scala.math.pow(apr, 2))
+    //ensure that a decimal number to precision 2 is returned (i.e. x.xx) so is readable to end user
+    BigDecimal(rawRating).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+  }
 
+  //method to make request to cscards endpoint and handle the response
   private def fetchCsCardOffers(user: User, endpoint: String): Future[List[CSCardsResponse]] = {
     val body = s"""{"name": "${user.name}", "creditScore": ${user.creditScore}}"""
 
@@ -83,6 +81,7 @@ trait CreditCardOfferService extends ServiceJsonProtocol {
     csCardOffers
   }
 
+  //method to make request to scored cards endpoint and handle the response
   private def fetchScoredCardsOffers(user: User, endpoint: String): Future[List[ScoredCardsResponse]] = {
     val body = s"""{"name": "${user.name}", "score": ${user.creditScore}, "salary": ${user.salary}}"""
 
