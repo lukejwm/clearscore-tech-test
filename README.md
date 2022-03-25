@@ -18,10 +18,7 @@ can just simply run script as:
 All defaults for defining the port and both endpoints are provided by the application.conf file. If
 you wish to specify these manually you may do so in the following manner, for example: 
 
->__./start.sh\ <br />
->   --port=1234\ <br />
->   --cscardsEndpoint=http://cscards.com\ <br />
->   --scoredCardsEndpoint=http://scoredcards.com__
+>__./start.sh 1234 http://cscards.com http://scoredcards.com__
 
 The service should then run and you may test it using cURL, for example:
 
@@ -35,6 +32,8 @@ The service will then output all available credit card offers from both provider
 To build the application source, simply do the following steps:
 >__mvn install__ <br />
 > __mvn package appassembler:assemble__
+
+You can also run the build script which does this. Please ensure to run the build script before running the start script.
 
 The resulting shell script (start.sh) is available in the target directory: <br />
 ${ProjectDirectory}/target/appassembler/assemble/bin

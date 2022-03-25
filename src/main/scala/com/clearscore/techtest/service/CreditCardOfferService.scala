@@ -10,10 +10,9 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import com.clearscore.techtest.models._
 import com.clearscore.techtest.swagger.SwaggerDocService
 import org.slf4j.LoggerFactory
-import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.Operation
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.{Consumes, POST, Path, Produces}
 
@@ -58,7 +57,7 @@ trait CreditCardOfferService extends ServiceJsonProtocol {
     Http().newServerAt(host, port).bind(route ~ swaggerRoute)
   }
 
-  def findCreditCardDeals(user: User, csCardsEndpoint: String, scoredCardsEndpoint: String): Future[List[CardQueryServiceResponse]] = {
+  private def findCreditCardDeals(user: User, csCardsEndpoint: String, scoredCardsEndpoint: String): Future[List[CardQueryServiceResponse]] = {
     for {
       csCardOffers <- fetchCsCardOffers(user, csCardsEndpoint)
       scoredCardOffers <- fetchScoredCardsOffers(user, scoredCardsEndpoint)
@@ -98,7 +97,7 @@ trait CreditCardOfferService extends ServiceJsonProtocol {
       new ApiResponse(responseCode = "404", description = "Endpoint not available")
     )
   )
-  private def fetchCsCardOffers(user: User, endpoint: String): Future[List[CSCardsResponse]] = {
+  def fetchCsCardOffers(user: User, endpoint: String): Future[List[CSCardsResponse]] = {
     val body = s"""{"name": "${user.name}", "creditScore": ${user.creditScore}}"""
 
     log.info(s"Fetching credit card deals from provider with endpoint: ${endpoint} with HTTP POST with following body: ${body}")
@@ -132,7 +131,7 @@ trait CreditCardOfferService extends ServiceJsonProtocol {
       new ApiResponse(responseCode = "404", description = "Endpoint not available")
     )
   )
-  private def fetchScoredCardsOffers(user: User, endpoint: String): Future[List[ScoredCardsResponse]] = {
+  def fetchScoredCardsOffers(user: User, endpoint: String): Future[List[ScoredCardsResponse]] = {
     val body = s"""{"name": "${user.name}", "score": ${user.creditScore}, "salary": ${user.salary}}"""
 
     log.info(s"Fetching credit card deals from provider with endpoint: ${endpoint} with HTTP POST with following body: ${body}")
